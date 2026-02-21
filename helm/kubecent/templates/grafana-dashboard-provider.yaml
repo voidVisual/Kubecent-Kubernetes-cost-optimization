@@ -1,0 +1,24 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "kubecent.fullname" . }}-grafana-dashboard-provider
+  namespace: {{ .Values.monitoring.namespace | default "monitoring" }}
+  labels:
+    {{- include "kubecent.labels" . | nindent 4 }}
+    app.kubernetes.io/component: grafana
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+    - name: 'kubecent-dashboards'
+      orgId: 1
+      folder: 'KubeCent'
+      type: file
+      disableDeletion: false
+      updateIntervalSeconds: 30
+      allowUiUpdates: true
+      options:
+        path: /tmp/dashboards
+        foldersFromFilesStructure: true
+{{- end }}

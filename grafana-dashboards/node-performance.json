@@ -1,0 +1,291 @@
+{
+  "dashboard": {
+    "uid": "node-performance",
+    "title": "Node Performance",
+    "tags": ["kubernetes", "nodes", "performance"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        },
+        "type": "graph",
+        "title": "Node CPU Usage",
+        "targets": [
+          {
+            "expr": "sum(rate(container_cpu_usage_seconds_total{container!=\"\"}[5m])) by (node)",
+            "legendFormat": "{{node}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "short",
+            "label": "CPU Cores"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        },
+        "type": "graph",
+        "title": "Node Memory Usage",
+        "targets": [
+          {
+            "expr": "sum(container_memory_working_set_bytes{container!=\"\"}) by (node)",
+            "legendFormat": "{{node}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "bytes",
+            "label": "Memory"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 0,
+          "y": 8
+        },
+        "type": "stat",
+        "title": "Total Nodes",
+        "targets": [
+          {
+            "expr": "count(kube_node_info)",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 8,
+          "y": 8
+        },
+        "type": "stat",
+        "title": "Ready Nodes",
+        "targets": [
+          {
+            "expr": "sum(kube_node_status_condition{condition=\"Ready\",status=\"true\"})",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": null, "color": "red"},
+                {"value": 1, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 16,
+          "y": 8
+        },
+        "type": "stat",
+        "title": "Not Ready Nodes",
+        "targets": [
+          {
+            "expr": "sum(kube_node_status_condition{condition=\"Ready\",status=\"false\"})",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": null, "color": "green"},
+                {"value": 1, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 6,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 16
+        },
+        "type": "graph",
+        "title": "Node Disk I/O",
+        "targets": [
+          {
+            "expr": "sum(rate(container_fs_reads_bytes_total[5m])) by (node)",
+            "legendFormat": "Read: {{node}}",
+            "refId": "A"
+          },
+          {
+            "expr": "sum(rate(container_fs_writes_bytes_total[5m])) by (node)",
+            "legendFormat": "Write: {{node}}",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "Bps",
+            "label": "Disk I/O"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 16
+        },
+        "type": "graph",
+        "title": "Node Network I/O",
+        "targets": [
+          {
+            "expr": "sum(rate(node_network_receive_bytes_total[5m])) by (instance)",
+            "legendFormat": "RX: {{instance}}",
+            "refId": "A"
+          },
+          {
+            "expr": "sum(rate(node_network_transmit_bytes_total[5m])) by (instance)",
+            "legendFormat": "TX: {{instance}}",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "Bps",
+            "label": "Network"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "gridPos": {
+          "h": 10,
+          "w": 24,
+          "x": 0,
+          "y": 24
+        },
+        "type": "table",
+        "title": "Node Details",
+        "targets": [
+          {
+            "expr": "kube_node_info",
+            "format": "table",
+            "instant": true,
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 34
+        },
+        "type": "gauge",
+        "title": "Node CPU Utilization %",
+        "targets": [
+          {
+            "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+            "legendFormat": "{{instance}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 70, "color": "yellow"},
+                {"value": 90, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 10,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 34
+        },
+        "type": "gauge",
+        "title": "Node Memory Utilization %",
+        "targets": [
+          {
+            "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+            "legendFormat": "{{instance}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 75, "color": "yellow"},
+                {"value": 90, "color": "red"}
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}

@@ -1,0 +1,182 @@
+{
+  "dashboard": {
+    "uid": "cluster-overview",
+    "title": "Cluster Overview",
+    "tags": ["kubernetes", "cluster"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 0,
+          "y": 0
+        },
+        "type": "stat",
+        "title": "Cluster CPU Usage",
+        "targets": [
+          {
+            "expr": "sum(rate(container_cpu_usage_seconds_total{container!=\"\"}[5m])) / sum(machine_cpu_cores) * 100",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": null, "color": "green"},
+                {"value": 70, "color": "yellow"},
+                {"value": 90, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 8,
+          "y": 0
+        },
+        "type": "stat",
+        "title": "Cluster Memory Usage",
+        "targets": [
+          {
+            "expr": "sum(container_memory_working_set_bytes{container!=\"\"}) / sum(machine_memory_bytes) * 100",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": null, "color": "green"},
+                {"value": 75, "color": "yellow"},
+                {"value": 90, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 16,
+          "y": 0
+        },
+        "type": "stat",
+        "title": "Node Count",
+        "targets": [
+          {
+            "expr": "count(kube_node_info)",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        },
+        "type": "graph",
+        "title": "CPU Usage Over Time",
+        "targets": [
+          {
+            "expr": "sum(rate(container_cpu_usage_seconds_total{container!=\"\"}[5m]))",
+            "legendFormat": "Total CPU",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "short",
+            "label": "Cores"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 8
+        },
+        "type": "graph",
+        "title": "Memory Usage Over Time",
+        "targets": [
+          {
+            "expr": "sum(container_memory_working_set_bytes{container!=\"\"})",
+            "legendFormat": "Total Memory",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "bytes",
+            "label": "Memory"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 16
+        },
+        "type": "table",
+        "title": "Namespace Resource Usage",
+        "targets": [
+          {
+            "expr": "sum(rate(container_cpu_usage_seconds_total{container!=\"\"}[5m])) by (namespace)",
+            "format": "table",
+            "instant": true,
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 16
+        },
+        "type": "table",
+        "title": "Pod Status",
+        "targets": [
+          {
+            "expr": "sum(kube_pod_status_phase) by (phase)",
+            "format": "table",
+            "instant": true,
+            "refId": "A"
+          }
+        ]
+      }
+    ]
+  },
+  "overwrite": true
+}

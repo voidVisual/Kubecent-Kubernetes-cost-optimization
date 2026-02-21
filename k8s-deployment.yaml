@@ -1,0 +1,222 @@
+# Complete Kubernetes Deployment for Kubecent
+# This manifest deploys both backend and frontend with proper service connections
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubecent
+  labels:
+    name: kubecent
+
+---
+# Backend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubecent-backend
+  namespace: kubecent
+  labels:
+    app: kubecent
+    component: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kubecent
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: kubecent
+        component: backend
+    spec:
+      serviceAccountName: kubecent
+      containers:
+      - name: backend
+        image: voidvisual/kubecent-backend:v1.0.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        env:
+        - name: OPENCOST_URL
+          value: "http://opencost.opencost.svc.cluster.local:9003"
+        - name: PROMETHEUS_URL
+          value: "http://prometheus-server.monitoring.svc.cluster.local:9090"
+        - name: GRAFANA_URL
+          value: "http://kube-prometheus-stack-grafana.monitoring.svc.cluster.local"
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: ENVIRONMENT
+          value: "production"
+        - name: ENABLE_SWAGGER
+          value: "true"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+
+---
+# Backend Service (Internal ClusterIP)
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubecent-backend
+  namespace: kubecent
+  labels:
+    app: kubecent
+    component: backend
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app: kubecent
+    component: backend
+
+---
+# Frontend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubecent-frontend
+  namespace: kubecent
+  labels:
+    app: kubecent
+    component: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kubecent
+      component: frontend
+  template:
+    metadata:
+      labels:
+        app: kubecent
+        component: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: voidvisual/kubecent-frontend:v1.0.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        env:
+        # Backend URL is injected at runtime by the entrypoint script
+        - name: BACKEND_URL
+          value: "http://kubecent-backend.kubecent.svc.cluster.local:8000"
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 101
+          capabilities:
+            drop:
+            - ALL
+
+---
+# Frontend Service (NodePort for external access)
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubecent-frontend
+  namespace: kubecent
+  labels:
+    app: kubecent
+    component: frontend
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30080  # Access via http://<node-ip>:30080
+    protocol: TCP
+    name: http
+  selector:
+    app: kubecent
+    component: frontend
+
+---
+# Optional: Ingress for production
+# Uncomment and configure for your ingress controller
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: kubecent
+#   namespace: kubecent
+#   annotations:
+#     kubernetes.io/ingress.class: nginx
+#     cert-manager.io/cluster-issuer: letsencrypt-prod
+# spec:
+#   tls:
+#   - hosts:
+#     - kubecent.example.com
+#     secretName: kubecent-tls
+#   rules:
+#   - host: kubecent.example.com
+#     http:
+#       paths:
+#       - path: /api
+#         pathType: Prefix
+#         backend:
+#           service:
+#             name: kubecent-backend
+#             port:
+#               number: 8000
+#       - path: /
+#         pathType: Prefix
+#         backend:
+#           service:
+#             name: kubecent-frontend
+#             port:
+#               number: 80

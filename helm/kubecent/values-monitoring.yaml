@@ -1,0 +1,264 @@
+# KubeCent Monitoring Stack Configuration
+# This file contains configuration for Grafana and Prometheus monitoring
+
+monitoring:
+  # Enable monitoring stack deployment
+  enabled: true
+  
+  # Namespace for monitoring components
+  namespace: monitoring
+
+# Grafana Configuration
+grafana:
+  enabled: true
+  
+  image:
+    repository: grafana/grafana
+    tag: "10.2.3"
+    pullPolicy: IfNotPresent
+  
+  # Service configuration
+  service:
+    type: LoadBalancer
+    port: 80
+    annotations: {}
+  
+  # Admin credentials
+  adminUser: admin
+  adminPassword: "admin"  # CHANGE THIS IN PRODUCTION!
+  
+  # Persistence
+  persistence:
+    enabled: true
+    storageClassName: ""
+    size: 10Gi
+    accessModes:
+      - ReadWriteOnce
+  
+  # Dashboard sidecar configuration
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      folder: /tmp/dashboards
+      folderAnnotation: grafana_folder
+      searchNamespace: ALL
+      provider:
+        foldersFromFilesStructure: true
+  
+  # Grafana configuration
+  grafanaIni:
+    server:
+      root_url: "%(protocol)s://%(domain)s:%(http_port)s/"
+    security:
+      admin_user: admin
+      admin_password: admin
+    dashboards:
+      default_home_dashboard_path: /tmp/dashboards/cluster-overview.json
+    auth:
+      disable_login_form: false
+    auth.anonymous:
+      enabled: false
+  
+  # Data sources configuration
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://kube-prometheus-stack-prometheus:9090
+        access: proxy
+        isDefault: true
+        editable: true
+
+# Prometheus Configuration
+prometheus:
+  enabled: true
+  
+  image:
+    repository: quay.io/prometheus/prometheus
+    tag: v2.48.1
+    pullPolicy: IfNotPresent
+  
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 9090
+  
+  # Persistence
+  persistence:
+    enabled: true
+    storageClassName: ""
+    size: 50Gi
+    accessModes:
+      - ReadWriteOnce
+  
+  # Retention
+  retention: "30d"
+  
+  # Scrape configuration
+  scrapeInterval: "30s"
+  evaluationInterval: "30s"
+  
+  # Additional scrape configs
+  additionalScrapeConfigs:
+    - job_name: 'kubernetes-nodes'
+      kubernetes_sd_configs:
+        - role: node
+      relabel_configs:
+        - action: labelmap
+          regex: __meta_kubernetes_node_label_(.+)
+    
+    - job_name: 'kubernetes-pods'
+      kubernetes_sd_configs:
+        - role: pod
+      relabel_configs:
+        - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+          action: keep
+          regex: true
+        - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+          action: replace
+          target_label: __metrics_path__
+          regex: (.+)
+        - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+          action: replace
+          regex: ([^:]+)(?::\d+)?;(\d+)
+          replacement: $1:$2
+          target_label: __address__
+
+# Node Exporter Configuration
+nodeExporter:
+  enabled: true
+  
+  image:
+    repository: quay.io/prometheus/node-exporter
+    tag: v1.7.0
+    pullPolicy: IfNotPresent
+  
+  # Deploy as DaemonSet
+  daemonset: true
+  
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 9100
+
+# Kube State Metrics Configuration
+kubeStateMetrics:
+  enabled: true
+  
+  image:
+    repository: registry.k8s.io/kube-state-metrics/kube-state-metrics
+    tag: v2.10.1
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: ClusterIP
+    port: 8080
+
+# KubeCent Monitoring Dashboards
+dashboards:
+  enabled: true
+  
+  # List of dashboards to deploy
+  dashboardsList:
+    - name: cluster-overview
+      configMapName: kubecent-dashboard-cluster-overview
+    - name: pod-metrics
+      configMapName: kubecent-dashboard-pod-metrics
+    - name: cost-analysis
+      configMapName: kubecent-dashboard-cost-analysis
+    - name: node-performance
+      configMapName: kubecent-dashboard-node-performance
+
+# OpenCost Integration
+opencost:
+  enabled: true
+  url: "http://opencost.opencost.svc.cluster.local:9003"
+
+# Resource Limits
+resources:
+  grafana:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  
+  prometheus:
+    requests:
+      cpu: 500m
+      memory: 2Gi
+    limits:
+      cpu: 2000m
+      memory: 8Gi
+  
+  nodeExporter:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  
+  kubeStateMetrics:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Alerting Configuration
+alerting:
+  enabled: false
+  
+  alertmanager:
+    enabled: false
+    image:
+      repository: quay.io/prometheus/alertmanager
+      tag: v0.26.0
+    
+    config:
+      global:
+        resolve_timeout: 5m
+      
+      route:
+        group_by: ['alertname', 'cluster']
+        group_wait: 10s
+        group_interval: 10s
+        repeat_interval: 12h
+        receiver: 'null'
+      
+      receivers:
+        - name: 'null'
+
+# Service Account
+serviceAccount:
+  create: true
+  name: kubecent-monitoring
+  annotations: {}
+
+# RBAC Configuration
+rbac:
+  create: true
+  
+  clusterRole:
+    rules:
+      - apiGroups: [""]
+        resources:
+          - nodes
+          - nodes/proxy
+          - services
+          - endpoints
+          - pods
+        verbs: ["get", "list", "watch"]
+      - apiGroups: ["extensions"]
+        resources:
+          - ingresses
+        verbs: ["get", "list", "watch"]
+      - nonResourceURLs: ["/metrics"]
+        verbs: ["get"]

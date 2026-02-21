@@ -1,0 +1,9 @@
+opencost:
+  exporter:
+    defaultClusterId: kubecent-cluster
+    env:
+      PROMETHEUS_SERVER_ENDPOINT: http://prometheus-server.monitoring.svc.cluster.local:80
+      PROM_CLUSTER_ID_LABEL: cluster_id
+  prometheus:
+    internal:
+      enabled: false

@@ -1,0 +1,223 @@
+{
+  "dashboard": {
+    "uid": "cost-analysis",
+    "title": "Cost Analysis",
+    "tags": ["kubernetes", "cost", "opencost"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "1m",
+    "panels": [
+      {
+        "id": 1,
+        "gridPos": {
+          "h": 6,
+          "w": 6,
+          "x": 0,
+          "y": 0
+        },
+        "type": "stat",
+        "title": "Total Cluster Cost (30d)",
+        "targets": [
+          {
+            "expr": "sum(node_total_hourly_cost) * 24 * 30",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD"
+          }
+        }
+      },
+      {
+        "id": 2,
+        "gridPos": {
+          "h": 6,
+          "w": 6,
+          "x": 6,
+          "y": 0
+        },
+        "type": "stat",
+        "title": "CPU Cost (30d)",
+        "targets": [
+          {
+            "expr": "sum(node_cpu_hourly_cost) * 24 * 30",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "color": {
+              "mode": "thresholds"
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "gridPos": {
+          "h": 6,
+          "w": 6,
+          "x": 12,
+          "y": 0
+        },
+        "type": "stat",
+        "title": "Memory Cost (30d)",
+        "targets": [
+          {
+            "expr": "sum(node_ram_hourly_cost) * 24 * 30",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "gridPos": {
+          "h": 6,
+          "w": 6,
+          "x": 18,
+          "y": 0
+        },
+        "type": "stat",
+        "title": "Storage Cost (30d)",
+        "targets": [
+          {
+            "expr": "sum(pv_hourly_cost) * 24 * 30",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD"
+          }
+        }
+      },
+      {
+        "id": 5,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 6
+        },
+        "type": "graph",
+        "title": "Cost Trend (7 days)",
+        "targets": [
+          {
+            "expr": "sum(node_total_hourly_cost)",
+            "legendFormat": "Hourly Cost",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "currencyUSD",
+            "label": "Cost/Hour"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 6
+        },
+        "type": "piechart",
+        "title": "Cost by Namespace",
+        "targets": [
+          {
+            "expr": "sum(container_cpu_allocation{container!=\"\"}) by (namespace) * on(node) group_left() sum(node_cpu_hourly_cost) by (node)",
+            "legendFormat": "{{namespace}}",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 14
+        },
+        "type": "table",
+        "title": "Namespace Cost Breakdown",
+        "targets": [
+          {
+            "expr": "sum(container_cpu_allocation{container!=\"\"}) by (namespace) * on(node) group_left() sum(node_cpu_hourly_cost) by (node)",
+            "format": "table",
+            "instant": true,
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 14
+        },
+        "type": "bargauge",
+        "title": "Top 10 Expensive Pods",
+        "targets": [
+          {
+            "expr": "topk(10, sum(container_cpu_allocation{container!=\"\"}) by (pod, namespace) * on(node) group_left() sum(node_cpu_hourly_cost) by (node))",
+            "legendFormat": "{{namespace}}/{{pod}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD"
+          }
+        }
+      },
+      {
+        "id": 9,
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 22
+        },
+        "type": "graph",
+        "title": "Cost by Resource Type",
+        "targets": [
+          {
+            "expr": "sum(node_cpu_hourly_cost)",
+            "legendFormat": "CPU Cost",
+            "refId": "A"
+          },
+          {
+            "expr": "sum(node_ram_hourly_cost)",
+            "legendFormat": "Memory Cost",
+            "refId": "B"
+          },
+          {
+            "expr": "sum(pv_hourly_cost)",
+            "legendFormat": "Storage Cost",
+            "refId": "C"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "currencyUSD",
+            "label": "Cost/Hour"
+          }
+        ]
+      }
+    ]
+  },
+  "overwrite": true
+}

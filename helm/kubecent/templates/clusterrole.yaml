@@ -1,0 +1,26 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "kubecent.fullname" . }}
+  labels:
+    {{- include "kubecent.labels" . | nindent 4 }}
+rules:
+  # Read pods, nodes, and namespaces for cost analysis
+  - apiGroups: [""]
+    resources: ["pods", "nodes", "namespaces"]
+    verbs: ["get", "list", "watch"]
+  
+  # Read pod logs for debugging
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+  
+  # Read deployments, statefulsets, daemonsets
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets", "daemonsets", "replicasets"]
+    verbs: ["get", "list", "watch"]
+  
+  # Read persistent volumes and claims
+  - apiGroups: [""]
+    resources: ["persistentvolumes", "persistentvolumeclaims"]
+    verbs: ["get", "list", "watch"]

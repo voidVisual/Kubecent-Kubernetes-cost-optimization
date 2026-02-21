@@ -1,0 +1,14 @@
+apiVersion: v2
+name: kubecent
+description: In-cluster Kubernetes cost optimization platform
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - kubernetes
+  - cost
+  - optimization
+  - monitoring
+maintainers:
+  - name: Kubecent Team
+    email: team@kubecent.io

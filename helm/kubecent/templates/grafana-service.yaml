@@ -1,0 +1,20 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kubecent.fullname" . }}-grafana
+  namespace: {{ .Values.monitoring.namespace | default "monitoring" }}
+  labels:
+    {{- include "kubecent.labels" . | nindent 4 }}
+    app.kubernetes.io/component: grafana
+spec:
+  type: {{ .Values.grafana.service.type }}
+  ports:
+  - port: {{ .Values.grafana.service.port }}
+    targetPort: 3000
+    protocol: TCP
+    name: http
+  selector:
+    {{- include "kubecent.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: grafana
+{{- end }}

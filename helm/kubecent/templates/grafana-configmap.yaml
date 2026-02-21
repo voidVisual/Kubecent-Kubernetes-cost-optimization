@@ -1,0 +1,31 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "kubecent.fullname" . }}-grafana-config
+  namespace: {{ .Values.monitoring.namespace | default "monitoring" }}
+  labels:
+    {{- include "kubecent.labels" . | nindent 4 }}
+    app.kubernetes.io/component: grafana
+data:
+  grafana.ini: |
+    [server]
+    root_url = %(protocol)s://%(domain)s:%(http_port)s/
+    
+    [security]
+    admin_user = {{ .Values.grafana.adminUser }}
+    admin_password = {{ .Values.grafana.adminPassword }}
+    
+    [dashboards]
+    default_home_dashboard_path = /tmp/dashboards/cluster-overview.json
+    
+    [auth]
+    disable_login_form = false
+    
+    [auth.anonymous]
+    enabled = false
+    
+    [dataproxy]
+    timeout = 300
+    keep_alive_seconds = 300
+{{- end }}

@@ -1,0 +1,109 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kubecent.fullname" . }}-grafana
+  namespace: {{ .Values.monitoring.namespace | default "monitoring" }}
+  labels:
+    {{- include "kubecent.labels" . | nindent 4 }}
+    app.kubernetes.io/component: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "kubecent.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: grafana
+  template:
+    metadata:
+      labels:
+        {{- include "kubecent.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: grafana
+    spec:
+      serviceAccountName: {{ include "kubecent.serviceAccountName" . }}-monitoring
+      containers:
+      - name: grafana
+        image: "{{ .Values.grafana.image.repository }}:{{ .Values.grafana.image.tag }}"
+        imagePullPolicy: {{ .Values.grafana.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: 3000
+          protocol: TCP
+        env:
+        - name: GF_SECURITY_ADMIN_USER
+          value: {{ .Values.grafana.adminUser }}
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "kubecent.fullname" . }}-grafana-secret
+              key: admin-password
+        - name: GF_PATHS_PROVISIONING
+          value: /etc/grafana/provisioning
+        volumeMounts:
+        - name: config
+          mountPath: /etc/grafana/grafana.ini
+          subPath: grafana.ini
+        - name: dashboards
+          mountPath: /tmp/dashboards
+        - name: datasources
+          mountPath: /etc/grafana/provisioning/datasources
+        - name: dashboard-provider
+          mountPath: /etc/grafana/provisioning/dashboards
+        {{- if .Values.grafana.persistence.enabled }}
+        - name: storage
+          mountPath: /var/lib/grafana
+        {{- end }}
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        resources:
+          {{- toYaml .Values.resources.grafana | nindent 10 }}
+      
+      {{- if .Values.grafana.sidecar.dashboards.enabled }}
+      - name: dashboard-sidecar
+        image: kiwigrid/k8s-sidecar:1.25.2
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: LABEL
+          value: {{ .Values.grafana.sidecar.dashboards.label }}
+        - name: LABEL_VALUE
+          value: {{ .Values.grafana.sidecar.dashboards.labelValue | quote }}
+        - name: FOLDER
+          value: /tmp/dashboards
+        - name: NAMESPACE
+          value: {{ .Values.grafana.sidecar.dashboards.searchNamespace | default "ALL" }}
+        - name: FOLDER_ANNOTATION
+          value: {{ .Values.grafana.sidecar.dashboards.folderAnnotation }}
+        - name: RESOURCE
+          value: configmap
+        volumeMounts:
+        - name: dashboards
+          mountPath: /tmp/dashboards
+      {{- end }}
+      
+      volumes:
+      - name: config
+        configMap:
+          name: {{ include "kubecent.fullname" . }}-grafana-config
+      - name: dashboards
+        emptyDir: {}
+      - name: datasources
+        configMap:
+          name: {{ include "kubecent.fullname" . }}-grafana-datasources
+      - name: dashboard-provider
+        configMap:
+          name: {{ include "kubecent.fullname" . }}-grafana-dashboard-provider
+      {{- if .Values.grafana.persistence.enabled }}
+      - name: storage
+        persistentVolumeClaim:
+          claimName: {{ include "kubecent.fullname" . }}-grafana-pvc
+      {{- end }}
+{{- end }}

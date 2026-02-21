@@ -1,0 +1,30 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "kubecent.fullname" . }}-grafana-datasources
+  namespace: {{ .Values.monitoring.namespace | default "monitoring" }}
+  labels:
+    {{- include "kubecent.labels" . | nindent 4 }}
+    app.kubernetes.io/component: grafana
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      type: prometheus
+      url: http://{{ include "kubecent.fullname" . }}-prometheus:9090
+      access: proxy
+      isDefault: true
+      editable: true
+      jsonData:
+        timeInterval: 30s
+    {{- if .Values.opencost.enabled }}
+    - name: OpenCost
+      type: prometheus
+      url: {{ .Values.opencost.url }}
+      access: proxy
+      isDefault: false
+      editable: true
+    {{- end }}
+{{- end }}
