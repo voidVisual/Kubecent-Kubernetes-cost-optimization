@@ -8,6 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  IMAGE_BASE: voidvisual/kubecent
 
 jobs:
   build-backend:
@@ -35,7 +36,7 @@ jobs:
         context: .
         file: ./docker/Dockerfile.backend
         push: ${{ github.event_name != 'pull_request' }}
-        tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/kubecent-backend:latest
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_BASE }}-backend:latest
         labels: |
           org.opencontainers.image.title=kubecent-backend
           org.opencontainers.image.description=Kubecent cost optimization backend
@@ -65,7 +66,7 @@ jobs:
         context: .
         file: ./docker/Dockerfile.frontend
         push: ${{ github.event_name != 'pull_request' }}
-        tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/kubecent-frontend:latest
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_BASE }}-frontend:latest
         labels: |
           org.opencontainers.image.title=kubecent-frontend
           org.opencontainers.image.description=Kubecent cost optimization dashboard
