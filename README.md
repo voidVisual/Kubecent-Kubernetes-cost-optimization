@@ -7,17 +7,17 @@
 Kubecent is a self-hosted, production-ready platform for understanding and optimizing Kubernetes costs within your cluster. It integrates seamlessly with OpenCost and Prometheus without requiring external data export or SaaS dependencies.
 
 **Key Features:**
-- 🏠 **In-Cluster Only**: Runs entirely within your Kubernetes cluster
-- 💰 **Cost Visibility**: Real-time cost allocation by namespace, pod, and container
-- 🔍 **Optimization Insights**: AI-powered recommendations for cost reduction
-- 🔐 **Kubernetes RBAC**: Native integration with Kubernetes service accounts
-- 📊 **Beautiful UI**: Modern React dashboard with real-time data
-- 📈 **Grafana Monitoring**: Integrated monitoring dashboards for comprehensive metrics
-- 🐳 **Container Native**: Docker and Helm deployment ready
-- 🚀 **Production Ready**: Clean architecture, comprehensive logging, security best practices
-- ☁️ **AWS EKS Ready**: Automated deployment scripts for Amazon EKS
+- **In-Cluster Only**: Runs entirely within your Kubernetes cluster
+- **Cost Visibility**: Real-time cost allocation by namespace, pod, and container
+- **Optimization Insights**: AI-powered recommendations for cost reduction
+- **Kubernetes RBAC**: Native integration with Kubernetes service accounts
+- **Beautiful UI**: Modern React dashboard with real-time data
+- **Grafana Monitoring**: Integrated monitoring dashboards for comprehensive metrics
+- **Container Native**: Docker and Helm deployment ready
+- **Production Ready**: Clean architecture, comprehensive logging, security best practices
+- **AWS EKS Ready**: Automated deployment scripts for Amazon EKS
 
-## 🚀 Quick Deploy to AWS EKS
+## Quick Deploy to AWS EKS
 
 **Deploy KubeCent to your AWS EKS cluster in 15 minutes!**
 
@@ -34,17 +34,17 @@ See **[Quick Deploy Guide](./QUICK_DEPLOY.md)** for one-command deployment!
 ## Documentation
 
 ### Getting Started
-- **[⚡ Quick Deploy (AWS EKS)](./QUICK_DEPLOY.md)** - One-command deployment
-- **[📘 AWS EKS Deployment Guide](./AWS_EKS_DEPLOYMENT.md)** - Complete AWS EKS setup
-- **[🚀 Quick Start Guide](./QUICKSTART.md)** - Local development setup
+- **[ Quick Deploy (AWS EKS)](./QUICK_DEPLOY.md)** - One-command deployment
+- **[ AWS EKS Deployment Guide](./AWS_EKS_DEPLOYMENT.md)** - Complete AWS EKS setup
+- **[ Quick Start Guide](./QUICKSTART.md)** - Local development setup
 
 ### Deployment & Operations
-- **[☸️ Deployment Guide](./DEPLOYMENT.md)** - General Kubernetes deployment
-- **[📊 Grafana Setup Guide](./GRAFANA_SETUP.md)** - Set up monitoring dashboards
-- **[🔗 Grafana Integration](./GRAFANA_MONITORING_INTEGRATION.md)** - Implementation details
+- **[ Deployment Guide](./DEPLOYMENT.md)** - General Kubernetes deployment
+- **[ Grafana Setup Guide](./GRAFANA_SETUP.md)** - Set up monitoring dashboards
+- **[ Grafana Integration](./GRAFANA_MONITORING_INTEGRATION.md)** - Implementation details
 
 ### Reference
-- **[📚 API Reference](./API_QUICKREF.md)** - Backend API documentation
+- **[ API Reference](./API_QUICKREF.md)** - Backend API documentation
 
 ## Architecture
 
